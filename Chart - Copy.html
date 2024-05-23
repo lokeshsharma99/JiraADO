@@ -1,0 +1,488 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JIRA Issues</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            overflow-y: auto; /* Add vertical scrollbar to the body */
+        }
+
+
+        .card-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            border: 3px solid #ddd;
+            padding: 0px;
+            margin: 0px;
+            flex: 1;
+            text-align: center;
+            position: relative;
+            min-width: 100px; /* Minimum width to prevent collapsing */
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 200px; /* Increased height for larger charts */
+            position: relative;
+            max-width: 100%; /* Ensure chart resizes properly */
+        }
+
+        .chart-center-text {
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        .issue-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+            .issue-table th, .issue-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+
+            .issue-table th {
+                background-color: #f2f2f2;
+            }
+
+        .collapsible {
+            background-color: #f9f9f9;
+            border: none;
+            text-align: left;
+            outline: none;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            font-size: 1.2em;
+        }
+
+        .content {
+            padding: 0 10px;
+            display: none;
+            overflow: hidden;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                flex: 0 0 100%; /* Full width on smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Project: My Scrum Project</h1>
+    <h2>Stories in Current Sprint – Sprint 1</h2>
+
+    <div class="card-container">
+        <div class="card">
+            <canvas id="storyChart" class="chart-container"></canvas>
+            <div id="storyChartCenterText" class="chart-center-text"></div>
+        </div>
+        <div class="card">
+            <canvas id="bugChart" class="chart-container"></canvas>
+            <div id="bugChartCenterText" class="chart-center-text"></div>
+        </div>
+</div>
+
+<button class="collapsible">Stories</button>
+<div class="content">
+    <table class="issue-table" id="storyTable">
+        <thead>
+            <tr>
+                <th>Issue Key</th>
+                <th>Summary</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<button class="collapsible">Bugs</button>
+<div class="content">
+    <table class="issue-table" id="bugTable">
+        <thead>
+            <tr>
+                <th>Issue Key</th>
+                <th>Summary</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const response = await fetch('http://localhost:7037/api/FetchJiraIssues'); // Replace with your actual API endpoint
+            const data = await response.json();
+
+            const issues = data.issues;
+            let storyCount = 0;
+            let bugCount = 0;
+            let storyStatusCounts = {};
+            let bugStatusCounts = {};
+
+            const storyTableBody = document.getElementById('storyTable').querySelector('tbody');
+            const bugTableBody = document.getElementById('bugTable').querySelector('tbody');
+
+            issues.forEach(issue => {
+                const issueType = issue.fields.issuetype.name;
+                const status = issue.fields.status.name;
+
+                if (issueType === 'Story') {
+                    storyStatusCounts[status] = (storyStatusCounts[status] || 0) + 1;
+                    const row = `
+                        <tr>
+                            <td>${issue.key}</td>
+                            <td>${issue.fields.summary}</td>
+                            <td>${status}</td>
+                        </tr>
+                    `;
+                    storyTableBody.insertAdjacentHTML('beforeend', row);
+                    storyCount++;
+                } else if (issueType === 'Bug') {
+                    bugStatusCounts[status] = (bugStatusCounts[status] || 0) + 1;
+                    const row = `
+                        <tr>
+                            <td>${issue.key}</td>
+                            <td>${issue.fields.summary}</td>
+                            <td>${status}</td>
+                        </tr>
+                    `;
+                    bugTableBody.insertAdjacentHTML('beforeend', row);
+                    bugCount++;
+                }
+            });
+
+            const totalIssues = storyCount + bugCount;
+            const chartHeight = totalIssues * 50; // Adjust the multiplier for desired height per issue
+
+            const createChart = (ctx, data, centerText, height) => {
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            data: Object.values(data),
+                            backgroundColor: ['#FFCC00', '#66CCFF', '#00CC66', '#FF6666'] // Customize colors
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Issue Status Distribution'
+                            }
+                        },
+                        cutout: '70%',
+                        layout: {
+                            padding: {
+                                top: 10,
+                                bottom: 10,
+                                left: 10,
+                                right: 10
+                            }
+                        },
+                        aspectRatio: 1, // Maintain aspect ratio
+                        maintainAspectRatio: false, // Allow resizing
+                        height: height // Set chart height dynamically
+                    }
+                });
+                document.getElementById(ctx.canvas.id + 'CenterText').textContent = centerText;
+            };
+
+            createChart(document.getElementById('storyChart').getContext('2d'), storyStatusCounts, storyCount, chartHeight);
+            createChart(document.getElementById('bugChart').getContext('2d'), bugStatusCounts, bugCount, chartHeight);
+
+            const collapsibles = document.getElementsByClassName("collapsible");
+            for (let i = 0; i < collapsibles.length; i++) {
+                collapsibles[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    const content = this.nextElementSibling;
+                    if (content.style.display === "block") {
+                        content.style.display = "none";
+                    } else {
+                        content.style.display = "block";
+                    }
+                });
+            }
+        });
+
+    </script>
+</body>
+</html>
+
+<!--<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JIRA Issues</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            overflow-y: scroll; /* Add vertical scrollbar to the body */
+        }
+
+        .card-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap-reverse;
+        }
+
+        .card {
+            border: 3px solid #ddd;
+            padding: 0px;
+            margin: 0px;
+            flex: 1;
+            text-align: center;
+            position: relative;
+            min-width: 100px; /* Minimum width to prevent collapsing */
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 200px; /* Increased height for larger charts */
+            position: relative;
+            max-width: 100%; /* Ensure chart resizes properly */
+        }
+
+        .chart-center-text {
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            font-weight: bold;
+        }
+        .total-count {
+            font-size: 2em;
+            margin-bottom: 1px;
+        }
+
+        .issue-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            display: none; /* Initially hide the table */
+            overflow-y: auto; /* Add vertical scrollbar to the table */
+            max-height: 300px; /* Limit the height and add scrollbar if content exceeds */
+        }
+
+            .issue-table th, .issue-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+
+            .issue-table th {
+                background-color: #f2f2f2;
+            }
+
+        .collapsible {
+            background-color: #f9f9f9;
+            border: none;
+            text-align: left;
+            outline: none;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            font-size: 1.2em;
+        }
+
+        .content {
+            padding: 0 10px;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out; /* Add smooth transition */
+            max-height: 0; /* Initially hide the content */
+        }
+
+        .active + .content {
+            max-height: 100px; /* Adjust this value as needed */
+            overflow: auto; /* Enable scrolling if needed */
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                flex: 0 0 100%; /* Full width on smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Project: My Scrum Project</h1>
+    <h2>Stories in Current Sprint – Sprint 1</h2>
+
+    <div class="card-container">
+        <div class="card" id="storyCard">
+            <div class="total-count" id="storyTotalCount">Total Stories: </div>
+            <canvas id="storyChart" class="chart-container"></canvas>
+            <div id="storyChartCenterText" class="chart-center-text"></div>
+        </div>
+        <div class="card" id="bugCard">
+            <div class="total-count" id="bugTotalCount">Total Bugs: </div>
+            <canvas id="bugChart" class="chart-container"></canvas>
+            <div id="bugChartCenterText" class="chart-center-text"></div>
+        </div>-->
+        <!-- Add more cards for additional issue types -->
+    <!--</div>
+
+    <div class="collapsible" onclick="toggleTable('storyTable')">Stories</div>
+    <div class="content" id="storyContent">
+        <table class="issue-table" id="storyTable">
+            <thead>
+                <tr>
+                    <th>Issue Key</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="collapsible" onclick="toggleTable('bugTable')">Bugs</div>
+    <div class="content" id="bugContent">
+        <table class="issue-table" id="bugTable">
+            <thead>
+                <tr>
+                    <th>Issue Key</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>-->
+
+    <!-- Add more collapsibles and content sections for additional issue types -->
+
+    <!--<script>
+        function toggleTable(tableId) {
+            var table = document.getElementById(tableId);
+            var content = document.getElementById(tableId + 'Content');
+            if (table.style.display === "table") {
+                table.style.display = "none";
+                content.style.maxHeight = null;
+            } else {
+                table.style.display = "table";
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            const response = await fetch('http://localhost:7037/api/FetchJiraIssues'); // Replace with your actual API endpoint
+            const data = await response.json();
+
+            const issues = data.issues;
+            let storyCount = 0;
+            let bugCount = 0;
+            let storyStatusCounts = {};
+            let bugStatusCounts = {};
+
+            const storyTableBody = document.getElementById('storyTable').querySelector('tbody');
+            const bugTableBody = document.getElementById('bugTable').querySelector('tbody');
+
+            issues.forEach(issue => {
+                const issueType = issue.fields.issuetype.name;
+                const status = issue.fields.status.name;
+
+                if (issueType === 'Story') {
+                    storyStatusCounts[status] = (storyStatusCounts[status] || 0) + 1;
+                    const row = `
+                            <tr>
+                                <td>${issue.key}</td>
+                                <td>${issue.fields.summary}</td>
+                                <td>${status}</td>
+                            </tr>
+                        `;
+                    storyTableBody.insertAdjacentHTML('beforeend', row);
+                    storyCount++;
+                } else if (issueType === 'Bug') {
+                    bugStatusCounts[status] = (bugStatusCounts[status] || 0) + 1;
+                    const row = `
+                            <tr>
+                                <td>${issue.key}</td>
+                                <td>${issue.fields.summary}</td>
+                                <td>${status}</td>
+                            </tr>
+                        `;
+                    bugTableBody.insertAdjacentHTML('beforeend', row);
+                    bugCount++;
+                }
+            });
+
+            const totalStoryCount = document.getElementById('storyTotalCount');
+            const totalBugCount = document.getElementById('bugTotalCount');
+
+            totalStoryCount.textContent = `Total Stories`;
+            totalBugCount.textContent = `Total Defects`;
+
+            const totalIssues = storyCount + bugCount;
+            const chartHeight = totalIssues * 50; // Adjust the multiplier for desired height per issue
+
+            const createChart = (ctx, data, centerText, height) => {
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            data: Object.values(data),
+                            backgroundColor: ['#FFCC00', '#66CCFF', '#00CC66', '#FF6666'] // Customize colors
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Issue Status Distribution'
+                            }
+                        },
+                        cutout: '70%',
+                        layout: {
+                            padding: {
+                                top: 10,
+                                bottom: 10,
+                                left: 10,
+                                right: 10
+                            }
+                        },
+                        aspectRatio: 1, // Maintain aspect ratio
+                        maintainAspectRatio: false, // Allow resizing
+                        height: height // Set chart height dynamically
+                    }
+                });
+                document.getElementById(ctx.canvas.id + 'CenterText').textContent = centerText;
+            };
+
+            createChart(document.getElementById('storyChart').getContext('2d'), storyStatusCounts, storyCount, chartHeight);
+            createChart(document.getElementById('bugChart').getContext('2d'), bugStatusCounts, bugCount, chartHeight);
+        });
+    </script>
+</body>
+</html>-->
