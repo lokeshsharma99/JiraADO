@@ -391,43 +391,42 @@
                 }
             });
 
-            const createChart = (ctx, data, centerText) => {
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: Object.keys(data),
-                        datasets: [{
-                            data: Object.values(data),
-                            backgroundColor: ['#FFCC00', '#66CCFF', '#00CC66', '#FF6666'] // Customize colors
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                            },
-                            title: {
-                                display: true,
-                                text: ''
-                            }
-                        },
-                        cutout: '50%',
-                        layout: {
-                            padding: {
-                                top: 0,
-                                bottom: 0,
-                                left: 0,
-                                right: 0
-                            }
-                        },
-                        aspectRatio: 1, // Maintain aspect ratio
-                        maintainAspectRatio: false // Allow resizing
-                    }
-                });
-                document.getElementById(ctx.canvas.id + 'CenterText').textContent = centerText;
-            };
-
+    const createChart = (ctx, data, centerText) => {
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                data: Object.values(data),
+                backgroundColor: ['#FFCC00', '#66CCFF', '#00CC66', '#FF6666'] // Customize colors
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false // Hide legend
+                },
+                title: {
+                    display: true,
+                    text: ''
+                }
+            },
+            cutout: '50%',
+            layout: {
+                padding: {
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0
+                }
+            },
+            aspectRatio: 1, // Maintain aspect ratio
+            maintainAspectRatio: false // Allow resizing
+        }
+    });
+    document.getElementById(ctx.canvas.id + 'CenterText').textContent = centerText;
+};
             createChart(document.getElementById('storyChart').getContext('2d'), storyStatusCounts, storyCount);
             createChart(document.getElementById('bugChart').getContext('2d'), bugStatusCounts, bugCount);
             createChart(document.getElementById('techStoryChart').getContext('2d'), techStoryStatusCounts, techStoryCount);
