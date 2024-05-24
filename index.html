@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JIRA Dashboard</title>
+    <title>End Of Sprint Report</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -22,16 +22,16 @@
         }
 
         .card {
-      border: 2px solid #ddd;
-      padding: 0px; /* Adjusted padding */
-      margin: 0px; /* Adjusted margin */
-      flex: 50 0 0%; /* Adjusted size to 30% */
-      text-align: center;
-      position: relative;
-      min-width: 200px; /* Adjusted minimum width */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+            border: 2px solid #ddd;
+            padding: 0px; /* Adjusted padding */
+            margin: 0px; /* Adjusted margin */
+            flex: 50 0 0%; /* Adjusted size to 30% */
+            text-align: center;
+            position: relative;
+            min-width: 200px; /* Adjusted minimum width */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .chart-container {
@@ -105,8 +105,8 @@
     </style>
 </head>
 <body>
-    <h1>Project: My Scrum Project</h1>
-    <h2>Stories in Current Sprint – Sprint 1</h2>
+    <h1 id="projectName"></h1>
+    <h2 id="sprintName"></h2>
 
     <div class="card-container">
         <div class="card" onclick="toggleTable('storyContent')">
@@ -161,7 +161,6 @@
 
     <button class="collapsible" onclick="toggleTable('bugContent', 'Defects')">Defects</button>
     <div class="content" id="bugContent">
-       
         <table class="issue-table" id="bugTable">
             <thead>
                 <tr>
@@ -176,7 +175,6 @@
 
     <button class="collapsible" onclick="toggleTable('techStoryContent', 'Tech Stories')">Tech Stories</button>
     <div class="content" id="techStoryContent">
-        
         <table class="issue-table" id="techStoryTable">
             <thead>
                 <tr>
@@ -191,7 +189,6 @@
 
     <button class="collapsible" onclick="toggleTable('techDebtContent', 'Tech Debt')">Tech Debt</button>
     <div class="content" id="techDebtContent">
-    
         <table class="issue-table" id="techDebtTable">
             <thead>
                 <tr>
@@ -206,7 +203,6 @@
 
     <button class="collapsible" onclick="toggleTable('spikeContent', 'Spikes')">Spikes</button>
     <div class="content" id="spikeContent">
-       
         <table class="issue-table" id="spikeTable">
             <thead>
                 <tr>
@@ -310,6 +306,20 @@
             const response = await fetch('http://localhost:7037/api/FetchJiraIssues'); // Replace with your actual API endpoint
             const data = await response.json();
 
+            // Assuming the first issue is located in data.issues[0]
+            const firstIssue = data.issues ? data.issues[0] : null;
+
+            // Extract project and sprint names from the first issue
+            const projectName = firstIssue && firstIssue.fields.project ? firstIssue.fields.project.name : "Not Available";
+            let sprintName = "Not Available";
+            if (firstIssue && firstIssue.fields && firstIssue.fields.customfield_10020 && firstIssue.fields.customfield_10020.length > 0) {
+                sprintName = firstIssue.fields.customfield_10020[0].name;
+            }
+
+            // Display project and sprint names on the HTML page
+            document.getElementById('projectName').textContent = `Project: ${projectName}`;
+            document.getElementById('sprintName').textContent = `Stories in Current Sprint – ${sprintName}`;
+
             const issues = data.issues;
             let storyCount = 0;
             let bugCount = 0;
@@ -335,97 +345,99 @@
                 if (issueType === 'Story') {
                     storyStatusCounts[status] = (storyStatusCounts[status] || 0) + 1;
                     const row = `
-                                <tr>
-                                    <td>${issue.key}</td>
-                                    <td>${issue.fields.summary}</td>
-                                    <td>${status}</td>
-                                </tr>
-                            `;
+                                    <tr>
+                                        <td>${issue.key}</td>
+                                        <td>${issue.fields.summary}</td>
+                                        <td>${status}</td>
+                                    </tr>
+                                `;
                     storyTableBody.insertAdjacentHTML('beforeend', row);
                     storyCount++;
                 } else if (issueType === 'Bug') {
                     bugStatusCounts[status] = (bugStatusCounts[status] || 0) + 1;
                     const row = `
-                                <tr>
-                                    <td>${issue.key}</td>
-                                    <td>${issue.fields.summary}</td>
-                                    <td>${status}</td>
-                                </tr>
-                            `;
+                                    <tr>
+                                        <td>${issue.key}</td>
+                                        <td>${issue.fields.summary}</td>
+                                        <td>${status}</td>
+                                    </tr>
+                                `;
                     bugTableBody.insertAdjacentHTML('beforeend', row);
                     bugCount++;
                 } else if (issueType === 'Tech Story') {
                     techStoryStatusCounts[status] = (techStoryStatusCounts[status] || 0) + 1;
                     const row = `
-                                <tr>
-                                    <td>${issue.key}</td>
-                                    <td>${issue.fields.summary}</td>
-                                    <td>${status}</td>
-                                </tr>
-                            `;
+                                    <tr>
+                                        <td>${issue.key}</td>
+                                        <td>${issue.fields.summary}</td>
+                                        <td>${status}</td>
+                                    </tr>
+                                `;
                     techStoryTableBody.insertAdjacentHTML('beforeend', row);
                     techStoryCount++;
                 } else if (issueType === 'Tech Debt') {
                     techDebtStatusCounts[status] = (techDebtStatusCounts[status] || 0) + 1;
                     const row = `
-                                <tr>
-                                    <td>${issue.key}</td>
-                                    <td>${issue.fields.summary}</td>
-                                    <td>${status}</td>
-                                </tr>
-                            `;
+                                    <tr>
+                                        <td>${issue.key}</td>
+                                        <td>${issue.fields.summary}</td>
+                                        <td>${status}</td>
+                                    </tr>
+                                `;
                     techDebtTableBody.insertAdjacentHTML('beforeend', row);
                     techDebtCount++;
                 } else if (issueType === 'Spike') {
                     spikeStatusCounts[status] = (spikeStatusCounts[status] || 0) + 1;
                     const row = `
-                                <tr>
-                                    <td>${issue.key}</td>
-                                    <td>${issue.fields.summary}</td>
-                                    <td>${status}</td>
-                                </tr>
-                            `;
+                                    <tr>
+                                        <td>${issue.key}</td>
+                                        <td>${issue.fields.summary}</td>
+                                        <td>${status}</td>
+                                    </tr>
+                                `;
                     spikeTableBody.insertAdjacentHTML('beforeend', row);
                     spikeCount++;
                 }
             });
 
-    const createChart = (ctx, data, centerText) => {
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(data),
-            datasets: [{
-                data: Object.values(data),
-                backgroundColor: ['#FFCC00', '#66CCFF', '#00CC66', '#FF6666'] // Customize colors
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false // Hide legend
-                },
-                title: {
-                    display: true,
-                    text: ''
-                }
-            },
-            cutout: '50%',
-            layout: {
-                padding: {
-                    top: 0,
-                    bottom: 0,
-                    left: 0,
-                    right: 0
-                }
-            },
-            aspectRatio: 1, // Maintain aspect ratio
-            maintainAspectRatio: false // Allow resizing
-        }
-    });
-    document.getElementById(ctx.canvas.id + 'CenterText').textContent = centerText;
-};
+            const createChart = (ctx, data, centerText) => {
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            data: Object.values(data),
+                            backgroundColor: ['#FFCC00', '#66CCFF', '#00CC66', '#FF6666'] // Customize colors
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false // Hide legend
+                            },
+                            title: {
+                                display: true,
+                                text: ''
+                            }
+                        },
+                        cutout: '50%',
+                        layout: {
+                            padding: {
+                                top: 0,
+                                bottom: 0,
+                                left: 0,
+                                right: 0
+                            }
+                        },
+                        aspectRatio: 1, // Maintain aspect ratio
+                        maintainAspectRatio: false // Allow resizing
+                    }
+                });
+                document.getElementById(ctx.canvas.id + 'CenterText').textContent = centerText;
+            };
+
+
             createChart(document.getElementById('storyChart').getContext('2d'), storyStatusCounts, storyCount);
             createChart(document.getElementById('bugChart').getContext('2d'), bugStatusCounts, bugCount);
             createChart(document.getElementById('techStoryChart').getContext('2d'), techStoryStatusCounts, techStoryCount);
