@@ -303,7 +303,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', async function () {
-            const response = await fetch('http://localhost:7037/api/FetchJiraIssues'); // Replace with your actual API endpoint
+            const response = await fetch('http://localhost:3000/jira'); // Replace with your actual API endpoint
             const data = await response.json();
 
             // Assuming the first issue is located in data.issues[0]
