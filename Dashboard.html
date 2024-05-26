@@ -1,0 +1,351 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>End Of Sprint Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            overflow-y: auto;
+            height: auto;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            border: 2px solid #ddd;
+            padding: 0px;
+            margin: 0px;
+            flex:   1 0 0%;
+            text-align: center;
+            position: relative;
+            min-width: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chart-container {
+            width: auto;
+            height: auto;
+            position: relative;
+            max-width: auto;
+        }
+
+        .chart-center-text {
+            position: absolute;
+            top: 58%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 400%;
+            font-weight: bold;
+        }
+
+        .chart-label {
+            margin-top: 0px;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .issue-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .issue-table th, .issue-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .issue-table th {
+            background-color: #f2f2f2;
+        }
+
+        .collapsible {
+            background-color: #f9f9f9;
+            border: none;
+            text-align: left;
+            outline: none;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            font-size: 1.2em;
+        }
+
+        .content {
+            padding: 0 10px;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            max-height: 0;
+        }
+
+        .content.expanded {
+            max-height: 1000px;
+            overflow: auto;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                flex: 0 0 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 id="projectName"></h1>
+    <h2 id="sprintName"></h2>
+
+    <div class="card-container">
+        <div class="card" onclick="toggleTable('storyContent')">
+            <div class="chart-container">
+                <canvas id="storyChart"></canvas>
+                <div id="storyChartCenterText" class="chart-center-text"></div>
+            </div>
+        </div>
+        <div class="card" onclick="toggleTable('bugContent')">
+            <div class="chart-container">
+                <canvas id="bugChart"></canvas>
+                <div id="bugChartCenterText" class="chart-center-text"></div>
+            </div>
+        </div>
+        <div class="card" onclick="toggleTable('techStoryContent')">
+            <div class="chart-container">
+                <canvas id="techStoryChart"></canvas>
+                <div id="techStoryChartCenterText" class="chart-center-text"></div>
+            </div>
+        </div>
+        <div class="card" onclick="toggleTable('techDebtContent')">
+            <div class="chart-container">
+                <canvas id="techDebtChart"></canvas>
+                <div id="techDebtChartCenterText" class="chart-center-text"></div>
+            </div>
+        </div>
+        <div class="card" onclick="toggleTable('spikeContent')">
+            <div class="chart-container">
+                <canvas id="spikeChart"></canvas>
+                <div id="spikeChartCenterText" class="chart-center-text"></div>
+            </div>
+        </div>
+    </div>
+    <button class="collapsible" onclick="toggleTable('storyContent', 'Stories')">Stories</button>
+    <div class="content" id="storyContent">
+        <table class="issue-table" id="storyTable">
+            <thead>
+                <tr>
+                    <th>Issue Key</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <button class="collapsible" onclick="toggleTable('bugContent', 'Defects')">Defects</button>
+    <div class="content" id="bugContent">
+        <table class="issue-table" id="bugTable">
+            <thead>
+                <tr>
+                    <th>Issue Key</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <button class="collapsible" onclick="toggleTable('techStoryContent', 'Tech Stories')">Tech Stories</button>
+    <div class="content" id="techStoryContent">
+        <table class="issue-table" id="techStoryTable">
+            <thead>
+                <tr>
+                    <th>Issue Key</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <button class="collapsible" onclick="toggleTable('techDebtContent', 'Tech Debt')">Tech Debt</button>
+    <div class="content" id="techDebtContent">
+        <table class="issue-table" id="techDebtTable">
+            <thead>
+                <tr>
+                    <th>Issue Key</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <button class="collapsible" onclick="toggleTable('spikeContent', 'Spikes')">Spikes</button>
+    <div class="content" id="spikeContent">
+        <table class="issue-table" id="spikeTable">
+            <thead>
+                <tr>
+                    <th>Issue Key</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        function toggleTable(contentId, tableName) {
+            var content = document.getElementById(contentId);
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+            } else {
+                var allContents = document.querySelectorAll('.content');
+                allContents.forEach(function (item) {
+                    if (item.id !== contentId && item.classList.contains('expanded')) {
+                        item.classList.remove('expanded');
+                    }
+                });
+                content.classList.add('expanded');
+                var tableNameElement = document.getElementById(contentId + 'Name');
+                tableNameElement.textContent = tableName;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            const response = await fetch('http://localhost:3000/jira');
+            const data = await response.json();
+
+            const firstIssue = data.issues ? data.issues[0] : null;
+            const projectName = firstIssue && firstIssue.fields.project ? firstIssue.fields.project.name : "Not Available";
+            let sprintName = "Not Available";
+            if (firstIssue && firstIssue.fields && firstIssue.fields.customfield_10020 && firstIssue.fields.customfield_10020.length > 0) {
+                sprintName = firstIssue.fields.customfield_10020[0].name;
+            }
+
+            document.getElementById('projectName').textContent = `Project: ${projectName}`;
+
+            const issues = data.issues;
+            const totalIssues = issues.length;
+            document.getElementById('sprintName').textContent = `${totalIssues} Issues in Current Sprint – ${sprintName}`;
+
+            let storyCount = 0;
+            let bugCount = 0;
+            let storyStatusCounts = { "Completed": 0, "Not Completed": 0 };
+            let bugStatusCounts = { "Completed": 0, "Not Completed": 0 };
+            let techStoryCount = 0;
+            let techDebtCount = 0;
+            let spikeCount = 0;
+            let techStoryStatusCounts = { "Completed": 0, "Not Completed": 0 };
+            let techDebtStatusCounts = { "Completed": 0, "Not Completed": 0 };
+            let spikeStatusCounts = { "Completed": 0, "Not Completed": 0 };
+
+            const storyTableBody = document.getElementById('storyTable').querySelector('tbody');
+            const bugTableBody = document.getElementById('bugTable').querySelector('tbody');
+            const techStoryTableBody = document.getElementById('techStoryTable').querySelector('tbody');
+            const techDebtTableBody = document.getElementById('techDebtTable').querySelector('tbody');
+            const spikeTableBody = document.getElementById('spikeTable').querySelector('tbody');
+
+            issues.forEach(issue => {
+                const { issuetype, status, summary } = issue.fields;
+                const issueKey = issue.key;
+                const issueType = issuetype.name;
+                const issueStatus = status.name;
+                const issueCompletionStatus = (issueStatus === "Done" || issueStatus === "Closed") ? "Completed" : "Not Completed";
+
+                const row = `<tr><td>${issueKey}</td><td>${summary}</td><td>${issueStatus}</td></tr>`;
+
+                switch (issueType) {
+                    case 'Story':
+                        storyCount++;
+                        storyTableBody.insertAdjacentHTML('beforeend', row);
+                        storyStatusCounts[issueCompletionStatus] = (storyStatusCounts[issueCompletionStatus] || 0) + 1;
+                        break;
+                    case 'Bug':
+                        bugCount++;
+                        bugTableBody.insertAdjacentHTML('beforeend', row);
+                        bugStatusCounts[issueCompletionStatus] = (bugStatusCounts[issueCompletionStatus] || 0) + 1;
+                        break;
+                    case 'Tech Story':
+                        techStoryCount++;
+                        techStoryTableBody.insertAdjacentHTML('beforeend', row);
+                        techStoryStatusCounts[issueCompletionStatus] = (techStoryStatusCounts[issueCompletionStatus] || 0) + 1;
+                        break;
+                    case 'Tech Debt':
+                        techDebtCount++;
+                        techDebtTableBody.insertAdjacentHTML('beforeend', row);
+                        techDebtStatusCounts[issueCompletionStatus] = (techDebtStatusCounts[issueCompletionStatus] || 0) + 1;
+                        break;
+                    case 'Spike':
+                        spikeCount++;
+                        spikeTableBody.insertAdjacentHTML('beforeend', row);
+                        spikeStatusCounts[issueCompletionStatus] = (spikeStatusCounts[issueCompletionStatus] || 0) + 1;
+                        break;
+                    default:
+                        break;
+                }
+            });
+
+            document.getElementById('storyChartCenterText').textContent = storyCount;
+            document.getElementById('bugChartCenterText').textContent = bugCount;
+            document.getElementById('techStoryChartCenterText').textContent = techStoryCount;
+            document.getElementById('techDebtChartCenterText').textContent = techDebtCount;
+            document.getElementById('spikeChartCenterText').textContent = spikeCount;
+
+            function createChart(chartId, statusCounts, label) {
+                new Chart(document.getElementById(chartId), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(statusCounts),
+                        datasets: [{
+                            data: Object.values(statusCounts),
+                            backgroundColor: [
+                                'rgb(0, 128, 0)', // Green for Completed
+                                'rgb(255, 165, 0)' // Amber for Not Completed
+                            ],
+                            hoverOffset: 1
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                display: false,
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: label,
+                                font: {
+                                    size: 18
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            createChart('storyChart', storyStatusCounts, 'Story Status');
+            createChart('bugChart', bugStatusCounts, 'Defect Status');
+            createChart('techStoryChart', techStoryStatusCounts, 'Tech Story Status');
+            createChart('techDebtChart', techDebtStatusCounts, 'Tech Debt Status');
+            createChart('spikeChart', spikeStatusCounts, 'Spike Status');
+        });
+    </script>
+</body>
+</html>
