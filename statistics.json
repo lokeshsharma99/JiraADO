@@ -563,7 +563,7 @@
     "transaction" : "Search-Launch",
     "sampleCount" : 40,
     "errorCount" : 0,
-    "errorPct" : 0.0,
+    "errorPct" : 44.0,
     "meanResTime" : 1036.1000000000004,
     "medianResTime" : 945.5,
     "minResTime" : 419.0,
