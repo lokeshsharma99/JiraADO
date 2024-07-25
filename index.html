@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pass/Fail Pie Chart</title>
+    <title>Pass/Fail Doughnut Chart</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,14 +14,15 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 </head>
 <body>
-    <canvas id="myPieChart" width="400" height="400"></canvas>
+    <canvas id="myDoughnutChart" width="400" height="400"></canvas>
     <script>
         // URL to fetch JSON data
         const jsonUrl = 'https://lokeshsharma99.github.io/JiraADO/statistics.json';
 
-        // Function to fetch JSON data and render the pie chart
+        // Function to fetch JSON data and render the doughnut chart
         async function fetchDataAndRenderChart() {
             try {
                 // Fetch JSON data from the URL
@@ -36,7 +37,7 @@
                 const passPercentage = 100 - errorPct;
                 const failPercentage = errorPct;
 
-                // Data for the pie chart
+                // Data for the doughnut chart
                 const chartData = {
                     labels: ['Pass', 'Fail'],
                     datasets: [{
@@ -45,7 +46,7 @@
                     }]
                 };
 
-                // Configuration for the pie chart
+                // Configuration for the doughnut chart
                 const config = {
                     type: 'doughnut',
                     data: chartData,
@@ -56,7 +57,7 @@
                                 position: 'bottom',
                                 labels: {
                                     font: {
-                                        family: 'Segoe UI', // Font for legend labels
+                                        family: 'Segoe UI',
                                         size: 14
                                     }
                                 }
@@ -68,11 +69,26 @@
                                     }
                                 },
                                 bodyFont: {
-                                    family: 'Segoe UI', // Font for tooltip body
+                                    family: 'Segoe UI',
                                     size: 14
                                 },
                                 titleFont: {
-                                    family: 'Segoe UI', // Font for tooltip title
+                                    family: 'Segoe UI',
+                                    size: 14
+                                }
+                            },
+                            datalabels: {
+                                formatter: (value, ctx) => {
+                                    let sum = 0;
+                                    let dataArr = ctx.chart.data.datasets[0].data;
+                                    dataArr.map(data => {
+                                        sum += data;
+                                    });
+                                    let percentage = (value * 100 / sum).toFixed(2) + "%";
+                                    return percentage;
+                                },
+                                color: '#fff',
+                                font: {
                                     size: 14
                                 }
                             }
@@ -87,8 +103,8 @@
                     }
                 };
 
-                // Render the pie chart
-                const ctx = document.getElementById('myPieChart').getContext('2d');
+                // Render the doughnut chart
+                const ctx = document.getElementById('myDoughnutChart').getContext('2d');
                 new Chart(ctx, config);
 
             } catch (error) {
