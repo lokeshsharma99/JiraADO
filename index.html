@@ -8,7 +8,9 @@
     <canvas id="doughnutChart"></canvas>
     <script>
         // Fetch data from the JSON URL
-        fetch('https://sareportingpoc.blob.core.windows.net/performancealt/statistics.json')
+        fetch('https://sareportingpoc.blob.core.windows.net/performancealt/statistics.json', {
+            mode: 'no-cors'
+        })
             .then(response => response.json())
             .then(data => {
                 const totalData = data.Total;
