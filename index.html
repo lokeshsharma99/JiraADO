@@ -1,45 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Request Summary Doughnut Chart</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pass/Fail Pie Chart</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <canvas id="doughnutChart"></canvas>
+    <canvas id="myPieChart" width="400" height="400"></canvas>
     <script>
-        // Fetch data from the JSON URL
-        fetch('https://sareportingpoc.blob.core.windows.net/performancealt/statistics.json', {
-            mode: 'no-cors'
-        })
-            .then(response => response.json())
-            .then(data => {
-                const totalData = data.Total;
-                const passPercentage = 100 - totalData.errorPct;
-                const failPercentage = totalData.errorPct;
+        // URL to fetch JSON data
+        const jsonUrl = 'https://sareportingpoc.blob.core.windows.net/performancealt/statistics.json';
 
-                // Create the doughnut chart
-                const ctx = document.getElementById('doughnutChart').getContext('2d');
-                const chart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Pass', 'Fail'],
-                        datasets: [{
-                            data: [passPercentage, failPercentage],
-                            backgroundColor: ['#36a2eb', '#ff6384']
-                        }]
-                    },
+        // Function to fetch JSON data and render the pie chart
+        async function fetchDataAndRenderChart() {
+            try {
+                // Fetch JSON data from the URL
+                const response = await fetch(jsonUrl);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+
+                // Extracting values from JSON
+                const errorPct = data.Total.errorPct;
+                const passPercentage = 100 - errorPct;
+                const failPercentage = errorPct;
+
+                // Data for the pie chart
+                const chartData = {
+                    labels: ['Pass', 'Fail'],
+                    datasets: [{
+                        data: [passPercentage, failPercentage],
+                        backgroundColor: ['#36A2EB', '#FF6384']
+                    }]
+                };
+
+                // Configuration for the pie chart
+                const config = {
+                    type: 'pie',
+                    data: chartData,
                     options: {
                         responsive: true,
                         plugins: {
-                            title: {
-                                display: true,
-                                text: 'Request Summary'
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        family: 'Segoe UI', // Font for legend labels
+                                        size: 14
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        return tooltipItem.label + ': ' + tooltipItem.raw.toFixed(2) + '%';
+                                    }
+                                },
+                                bodyFont: {
+                                    family: 'Segoe UI', // Font for tooltip body
+                                    size: 14
+                                },
+                                titleFont: {
+                                    family: 'Segoe UI', // Font for tooltip title
+                                    size: 14
+                                }
+                            }
+                        },
+                        elements: {
+                            arc: {
+                                borderWidth: 1,
+                                borderColor: '#fff',
+                                borderAlign: 'inner'
                             }
                         }
                     }
-                });
-            })
-            .catch(error => console.error('Error fetching data:', error));
+                };
+
+                // Render the pie chart
+                const ctx = document.getElementById('myPieChart').getContext('2d');
+                new Chart(ctx, config);
+
+            } catch (error) {
+                console.error('Error fetching or processing data:', error);
+            }
+        }
+
+        // Fetch data and render chart on window load
+        window.onload = fetchDataAndRenderChart;
     </script>
 </body>
 </html>
