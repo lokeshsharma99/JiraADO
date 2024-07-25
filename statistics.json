@@ -3,7 +3,7 @@
     "transaction" : "Launch-3",
     "sampleCount" : 40,
     "errorCount" : 0,
-    "errorPct" : 0.0,
+    "errorPct" : 44.0,
     "meanResTime" : 206.67499999999998,
     "medianResTime" : 198.5,
     "minResTime" : 129.0,
